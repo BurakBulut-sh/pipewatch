@@ -1,0 +1,24 @@
+services:
+  pipewatch:
+    build: .
+    volumes:
+      - ./events:/app/events
+      - ./reports:/app/reports
+    environment:
+      - PIPEWATCH_EVENTS_DIR=/app/events
+    command: >
+      bash -c "
+        cd /app/examples/ci-simulation &&
+        python3 simulate_pipeline.py -n 20 -o /app/events/demo.ndjson &&
+        pipewatch report /app/events/*.ndjson -o /app/reports/ --format both &&
+        echo 'Reports generated in /app/reports/'
+      "
+
+  shell:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: /bin/bash
+    stdin_open: true
+    tty: true

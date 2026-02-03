@@ -1,0 +1,327 @@
+{
+  "run_id": "run_b",
+  "total_steps": 7,
+  "total_samples": 20,
+  "total_duration_ms": 6820947,
+  "total_duration_human": "1.89h",
+  "start_time": "2026-02-03T18:53:02.222874+00:00Z",
+  "end_time": "2026-02-03T18:59:38.973874+00:00Z",
+  "step_stats": [
+    {
+      "step_name": "hc",
+      "count": 20,
+      "avg_duration_ms": 146285.5,
+      "avg_duration_human": "2.4m",
+      "max_duration_ms": 176730,
+      "max_duration_human": "2.9m",
+      "failures": 1,
+      "avg_max_rss_mb": 5518.0,
+      "max_max_rss_mb": 6138.26
+    },
+    {
+      "step_name": "align",
+      "count": 20,
+      "avg_duration_ms": 71534.15,
+      "avg_duration_human": "1.2m",
+      "max_duration_ms": 82929,
+      "max_duration_human": "1.4m",
+      "failures": 0,
+      "avg_max_rss_mb": 4251.37,
+      "max_max_rss_mb": 4847.92
+    },
+    {
+      "step_name": "markdup",
+      "count": 20,
+      "avg_duration_ms": 51323.5,
+      "avg_duration_human": "51.3s",
+      "max_duration_ms": 63834,
+      "max_duration_human": "1.1m",
+      "failures": 1,
+      "avg_max_rss_mb": 3230.84,
+      "max_max_rss_mb": 3678.67
+    },
+    {
+      "step_name": "sort",
+      "count": 20,
+      "avg_duration_ms": 34352.0,
+      "avg_duration_human": "34.4s",
+      "max_duration_ms": 44803,
+      "max_duration_human": "44.8s",
+      "failures": 2,
+      "avg_max_rss_mb": 2125.73,
+      "max_max_rss_mb": 2329.0
+    },
+    {
+      "step_name": "bqsr",
+      "count": 20,
+      "avg_duration_ms": 22535.85,
+      "avg_duration_human": "22.5s",
+      "max_duration_ms": 28773,
+      "max_duration_human": "28.8s",
+      "failures": 0,
+      "avg_max_rss_mb": 1637.25,
+      "max_max_rss_mb": 1791.25
+    },
+    {
+      "step_name": "trim",
+      "count": 20,
+      "avg_duration_ms": 9133.2,
+      "avg_duration_human": "9.1s",
+      "max_duration_ms": 11900,
+      "max_duration_human": "11.9s",
+      "failures": 0,
+      "avg_max_rss_mb": 1072.6,
+      "max_max_rss_mb": 1187.6
+    },
+    {
+      "step_name": "qc",
+      "count": 20,
+      "avg_duration_ms": 5883.15,
+      "avg_duration_human": "5.9s",
+      "max_duration_ms": 7384,
+      "max_duration_human": "7.4s",
+      "failures": 0,
+      "avg_max_rss_mb": 517.24,
+      "max_max_rss_mb": 612.63
+    }
+  ],
+  "slowest_steps": [
+    {
+      "step_name": "hc",
+      "avg_duration_ms": 146285.5,
+      "avg_duration_human": "2.4m"
+    },
+    {
+      "step_name": "align",
+      "avg_duration_ms": 71534.15,
+      "avg_duration_human": "1.2m"
+    },
+    {
+      "step_name": "markdup",
+      "avg_duration_ms": 51323.5,
+      "avg_duration_human": "51.3s"
+    },
+    {
+      "step_name": "sort",
+      "avg_duration_ms": 34352.0,
+      "avg_duration_human": "34.4s"
+    },
+    {
+      "step_name": "bqsr",
+      "avg_duration_ms": 22535.85,
+      "avg_duration_human": "22.5s"
+    },
+    {
+      "step_name": "trim",
+      "avg_duration_ms": 9133.2,
+      "avg_duration_human": "9.1s"
+    },
+    {
+      "step_name": "qc",
+      "avg_duration_ms": 5883.15,
+      "avg_duration_human": "5.9s"
+    }
+  ],
+  "sample_stats": [
+    {
+      "sample_id": "S016",
+      "step_count": 7,
+      "total_duration_ms": 390678,
+      "total_duration_human": "6.5m",
+      "failures": 1
+    },
+    {
+      "sample_id": "S007",
+      "step_count": 7,
+      "total_duration_ms": 369248,
+      "total_duration_human": "6.2m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S006",
+      "step_count": 7,
+      "total_duration_ms": 368837,
+      "total_duration_human": "6.1m",
+      "failures": 1
+    },
+    {
+      "sample_id": "S001",
+      "step_count": 7,
+      "total_duration_ms": 366212,
+      "total_duration_human": "6.1m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S011",
+      "step_count": 7,
+      "total_duration_ms": 364794,
+      "total_duration_human": "6.1m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S009",
+      "step_count": 7,
+      "total_duration_ms": 360199,
+      "total_duration_human": "6.0m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S017",
+      "step_count": 7,
+      "total_duration_ms": 360122,
+      "total_duration_human": "6.0m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S012",
+      "step_count": 7,
+      "total_duration_ms": 354965,
+      "total_duration_human": "5.9m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S013",
+      "step_count": 7,
+      "total_duration_ms": 350773,
+      "total_duration_human": "5.8m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S020",
+      "step_count": 7,
+      "total_duration_ms": 350184,
+      "total_duration_human": "5.8m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S018",
+      "step_count": 7,
+      "total_duration_ms": 346836,
+      "total_duration_human": "5.8m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S002",
+      "step_count": 7,
+      "total_duration_ms": 336019,
+      "total_duration_human": "5.6m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S008",
+      "step_count": 7,
+      "total_duration_ms": 329935,
+      "total_duration_human": "5.5m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S014",
+      "step_count": 7,
+      "total_duration_ms": 327508,
+      "total_duration_human": "5.5m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S015",
+      "step_count": 7,
+      "total_duration_ms": 324522,
+      "total_duration_human": "5.4m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S005",
+      "step_count": 7,
+      "total_duration_ms": 322759,
+      "total_duration_human": "5.4m",
+      "failures": 1
+    },
+    {
+      "sample_id": "S003",
+      "step_count": 7,
+      "total_duration_ms": 319581,
+      "total_duration_human": "5.3m",
+      "failures": 1
+    },
+    {
+      "sample_id": "S004",
+      "step_count": 7,
+      "total_duration_ms": 303107,
+      "total_duration_human": "5.1m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S019",
+      "step_count": 7,
+      "total_duration_ms": 297134,
+      "total_duration_human": "5.0m",
+      "failures": 0
+    },
+    {
+      "sample_id": "S010",
+      "step_count": 7,
+      "total_duration_ms": 277534,
+      "total_duration_human": "4.6m",
+      "failures": 0
+    }
+  ],
+  "failures": {
+    "total": 4,
+    "rate": 0.03,
+    "by_step": {
+      "sort": 2,
+      "markdup": 1,
+      "hc": 1
+    },
+    "by_sample": {
+      "S006": 1,
+      "S003": 1,
+      "S016": 1,
+      "S005": 1
+    }
+  },
+  "memory_hogs": [
+    {
+      "step_name": "hc",
+      "max_rss_mb": 6138.26,
+      "avg_rss_mb": 5518.0
+    },
+    {
+      "step_name": "align",
+      "max_rss_mb": 4847.92,
+      "avg_rss_mb": 4251.37
+    },
+    {
+      "step_name": "markdup",
+      "max_rss_mb": 3678.67,
+      "avg_rss_mb": 3230.84
+    },
+    {
+      "step_name": "sort",
+      "max_rss_mb": 2329.0,
+      "avg_rss_mb": 2125.73
+    },
+    {
+      "step_name": "bqsr",
+      "max_rss_mb": 1791.25,
+      "avg_rss_mb": 1637.25
+    },
+    {
+      "step_name": "trim",
+      "max_rss_mb": 1187.6,
+      "avg_rss_mb": 1072.6
+    },
+    {
+      "step_name": "qc",
+      "max_rss_mb": 612.63,
+      "avg_rss_mb": 517.24
+    }
+  ],
+  "resource_summary": {
+    "total_samples_with_memory": 136,
+    "peak_memory_kb": 6285583,
+    "avg_memory_kb": 2665865.6764705884,
+    "total_user_time_s": 5456.7576,
+    "total_sys_time_s": 1364.1894
+  },
+  "issues": []
+}

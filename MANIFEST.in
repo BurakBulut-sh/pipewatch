@@ -1,0 +1,4 @@
+include src/pipewatch/obsrun.sh
+include README.md
+include LICENSE
+recursive-include examples *.sh *.py *.md *.txt

@@ -1,0 +1,982 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipewatch Report - run_b</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #06b6d4;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem 0;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .metric-value.success { color: var(--success); }
+        .metric-value.warning { color: var(--warning); }
+        .metric-value.error { color: var(--error); }
+
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 1rem 1.5rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .section-content {
+            padding: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .badge-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        .issue {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .issue-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        .issue-warning .issue-icon {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .issue-error .issue-icon {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        .issue-content {
+            flex: 1;
+        }
+
+        .issue-type {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .issue-message {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            height: 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 0.25rem;
+            transition: width 0.3s ease;
+        }
+
+        .comparison-positive {
+            color: var(--success);
+        }
+
+        .comparison-negative {
+            color: var(--error);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            table {
+                font-size: 0.75rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 Pipewatch Report</h1>
+            <p class="subtitle">Run ID: run_b | Generated: 2026-02-03T18:53:01.358337+00:00</p>
+        </header>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Steps</div>
+                <div class="metric-value">7</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Samples</div>
+                <div class="metric-value">20</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Duration</div>
+                <div class="metric-value">1.89h</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Failure Rate</div>
+                <div class="metric-value error">
+                    2.9%
+                </div>
+            </div>
+        </div>
+
+        
+
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">🐌 Top Slowest Steps</span>
+            </div>
+            <div class="section-content">
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Step</th>
+                            <th>Avg Duration</th>
+                            <th>Distribution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td>hc</td>
+                            <td>146.29s</td>
+                            <td>
+                                <div class="progress-bar" style="width: 200px;">
+                                    <div class="progress-fill" style="width: 100.0%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>align</td>
+                            <td>71.53s</td>
+                            <td>
+                                <div class="progress-bar" style="width: 200px;">
+                                    <div class="progress-fill" style="width: 48.90036948296311%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>markdup</td>
+                            <td>51.32s</td>
+                            <td>
+                                <div class="progress-bar" style="width: 200px;">
+                                    <div class="progress-fill" style="width: 35.08447522139925%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>sort</td>
+                            <td>34.35s</td>
+                            <td>
+                                <div class="progress-bar" style="width: 200px;">
+                                    <div class="progress-fill" style="width: 23.482846898701514%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>bqsr</td>
+                            <td>22.54s</td>
+                            <td>
+                                <div class="progress-bar" style="width: 200px;">
+                                    <div class="progress-fill" style="width: 15.405388777424967%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>trim</td>
+                            <td>9.13s</td>
+                            <td>
+                                <div class="progress-bar" style="width: 200px;">
+                                    <div class="progress-fill" style="width: 6.243407583116578%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>qc</td>
+                            <td>5.88s</td>
+                            <td>
+                                <div class="progress-bar" style="width: 200px;">
+                                    <div class="progress-fill" style="width: 4.021690461460636%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+                
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">📊 Per-Sample Runtimes</span>
+            </div>
+            <div class="section-content">
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sample</th>
+                            <th>Steps</th>
+                            <th>Total Time</th>
+                            <th>Avg Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td>S016</td>
+                            <td>7</td>
+                            <td>390.68s</td>
+                            <td>55.81s</td>
+                            <td>
+                                
+                                <span class="badge badge-error">1 Failed</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S007</td>
+                            <td>7</td>
+                            <td>369.25s</td>
+                            <td>52.75s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S006</td>
+                            <td>7</td>
+                            <td>368.84s</td>
+                            <td>52.69s</td>
+                            <td>
+                                
+                                <span class="badge badge-error">1 Failed</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S001</td>
+                            <td>7</td>
+                            <td>366.21s</td>
+                            <td>52.32s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S011</td>
+                            <td>7</td>
+                            <td>364.79s</td>
+                            <td>52.11s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S009</td>
+                            <td>7</td>
+                            <td>360.20s</td>
+                            <td>51.46s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S017</td>
+                            <td>7</td>
+                            <td>360.12s</td>
+                            <td>51.45s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S012</td>
+                            <td>7</td>
+                            <td>354.96s</td>
+                            <td>50.71s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S013</td>
+                            <td>7</td>
+                            <td>350.77s</td>
+                            <td>50.11s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S020</td>
+                            <td>7</td>
+                            <td>350.18s</td>
+                            <td>50.03s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S018</td>
+                            <td>7</td>
+                            <td>346.84s</td>
+                            <td>49.55s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S002</td>
+                            <td>7</td>
+                            <td>336.02s</td>
+                            <td>48.00s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S008</td>
+                            <td>7</td>
+                            <td>329.94s</td>
+                            <td>47.13s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S014</td>
+                            <td>7</td>
+                            <td>327.51s</td>
+                            <td>46.79s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S015</td>
+                            <td>7</td>
+                            <td>324.52s</td>
+                            <td>46.36s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S005</td>
+                            <td>7</td>
+                            <td>322.76s</td>
+                            <td>46.11s</td>
+                            <td>
+                                
+                                <span class="badge badge-error">1 Failed</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S003</td>
+                            <td>7</td>
+                            <td>319.58s</td>
+                            <td>45.65s</td>
+                            <td>
+                                
+                                <span class="badge badge-error">1 Failed</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S004</td>
+                            <td>7</td>
+                            <td>303.11s</td>
+                            <td>43.30s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S019</td>
+                            <td>7</td>
+                            <td>297.13s</td>
+                            <td>42.45s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>S010</td>
+                            <td>7</td>
+                            <td>277.53s</td>
+                            <td>39.65s</td>
+                            <td>
+                                
+                                <span class="badge badge-success">Success</span>
+                                
+                            </td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+                
+                
+            </div>
+        </div>
+
+        
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">🔥 Failure Clustering</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Name</th>
+                            <th>Failures</th>
+                            <th>Exit Codes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td>Step</td>
+                            <td>sort</td>
+                            <td>
+                                <span class="badge badge-error">2</span>
+                            </td>
+                            <td>
+                                
+                                <span class="badge badge-warning" style="margin-right: 0.25rem;">
+                                    1 (2)
+                                </span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Step</td>
+                            <td>markdup</td>
+                            <td>
+                                <span class="badge badge-error">1</span>
+                            </td>
+                            <td>
+                                
+                                <span class="badge badge-warning" style="margin-right: 0.25rem;">
+                                    1 (1)
+                                </span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Step</td>
+                            <td>hc</td>
+                            <td>
+                                <span class="badge badge-error">1</span>
+                            </td>
+                            <td>
+                                
+                                <span class="badge badge-warning" style="margin-right: 0.25rem;">
+                                    1 (1)
+                                </span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Sample</td>
+                            <td>S006</td>
+                            <td>
+                                <span class="badge badge-error">1</span>
+                            </td>
+                            <td>
+                                
+                                <span class="badge badge-warning" style="margin-right: 0.25rem;">
+                                    1 (1)
+                                </span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Sample</td>
+                            <td>S003</td>
+                            <td>
+                                <span class="badge badge-error">1</span>
+                            </td>
+                            <td>
+                                
+                                <span class="badge badge-warning" style="margin-right: 0.25rem;">
+                                    1 (1)
+                                </span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Sample</td>
+                            <td>S016</td>
+                            <td>
+                                <span class="badge badge-error">1</span>
+                            </td>
+                            <td>
+                                
+                                <span class="badge badge-warning" style="margin-right: 0.25rem;">
+                                    1 (1)
+                                </span>
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Sample</td>
+                            <td>S005</td>
+                            <td>
+                                <span class="badge badge-error">1</span>
+                            </td>
+                            <td>
+                                
+                                <span class="badge badge-warning" style="margin-right: 0.25rem;">
+                                    1 (1)
+                                </span>
+                                
+                            </td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+
+        
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">🧠 Memory Hogs</span>
+            </div>
+            <div class="section-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Step</th>
+                            <th>Peak Memory (MB)</th>
+                            <th>Avg Memory (MB)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td>hc</td>
+                            <td>6138.3</td>
+                            <td>5518.0</td>
+                        </tr>
+                        
+                        <tr>
+                            <td>align</td>
+                            <td>4847.9</td>
+                            <td>4251.4</td>
+                        </tr>
+                        
+                        <tr>
+                            <td>markdup</td>
+                            <td>3678.7</td>
+                            <td>3230.8</td>
+                        </tr>
+                        
+                        <tr>
+                            <td>sort</td>
+                            <td>2329.0</td>
+                            <td>2125.7</td>
+                        </tr>
+                        
+                        <tr>
+                            <td>bqsr</td>
+                            <td>1791.2</td>
+                            <td>1637.3</td>
+                        </tr>
+                        
+                        <tr>
+                            <td>trim</td>
+                            <td>1187.6</td>
+                            <td>1072.6</td>
+                        </tr>
+                        
+                        <tr>
+                            <td>qc</td>
+                            <td>612.6</td>
+                            <td>517.2</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+
+        
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">📈 Run-to-Run Comparison</span>
+            </div>
+            <div class="section-content">
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    Comparing against baseline: run_a
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Step</th>
+                            <th>Baseline</th>
+                            <th>Current</th>
+                            <th>Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td>align</td>
+                            <td>68.75s</td>
+                            <td>71.53s</td>
+                            <td>
+                                
+                                    
+                                    <span class="comparison-negative">+4.0%</span>
+                                    
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>hc</td>
+                            <td>141.30s</td>
+                            <td>146.29s</td>
+                            <td>
+                                
+                                    
+                                    <span class="comparison-negative">+3.5%</span>
+                                    
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>qc</td>
+                            <td>5.79s</td>
+                            <td>5.88s</td>
+                            <td>
+                                
+                                    
+                                    <span class="comparison-negative">+1.5%</span>
+                                    
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>bqsr</td>
+                            <td>23.22s</td>
+                            <td>22.54s</td>
+                            <td>
+                                
+                                    
+                                    <span class="comparison-positive">-3.0%</span>
+                                    
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>markdup</td>
+                            <td>53.37s</td>
+                            <td>51.32s</td>
+                            <td>
+                                
+                                    
+                                    <span class="comparison-positive">-3.8%</span>
+                                    
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>trim</td>
+                            <td>9.52s</td>
+                            <td>9.13s</td>
+                            <td>
+                                
+                                    
+                                    <span class="comparison-positive">-4.1%</span>
+                                    
+                                
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>sort</td>
+                            <td>36.01s</td>
+                            <td>34.35s</td>
+                            <td>
+                                
+                                    
+                                    <span class="comparison-positive">-4.6%</span>
+                                    
+                                
+                            </td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+
+        <div class="footer">
+            <p>Generated by Pipewatch v0.1.0 | <a href="data.json" style="color: var(--accent-primary);">Download JSON</a></p>
+        </div>
+    </div>
+</body>
+</html>

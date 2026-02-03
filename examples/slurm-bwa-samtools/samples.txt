@@ -1,0 +1,8 @@
+# Sample manifest for BWA alignment workflow
+# Format: sample_id<TAB>path_to_R1<TAB>path_to_R2
+
+sample_001	/data/samples/sample_001_R1.fq.gz	/data/samples/sample_001_R2.fq.gz
+sample_002	/data/samples/sample_002_R1.fq.gz	/data/samples/sample_002_R2.fq.gz
+sample_003	/data/samples/sample_003_R1.fq.gz	/data/samples/sample_003_R2.fq.gz
+sample_004	/data/samples/sample_004_R1.fq.gz	/data/samples/sample_004_R2.fq.gz
+sample_005	/data/samples/sample_005_R1.fq.gz	/data/samples/sample_005_R2.fq.gz
