@@ -9,7 +9,7 @@ description = "Pipeline observability for legacy Slurm-based bioinformatics work
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
-    { name = "Pipewatch Contributors" },
+    { name = "Burak Bulut, Ph.D.", email = "burak.buluut@outlook.com" },
 ]
 keywords = ["slurm", "hpc", "bioinformatics", "pipeline", "observability", "monitoring"]
 classifiers = [
@@ -50,10 +50,10 @@ obsreport = "pipewatch.cli:obsreport_main"
 obsrun = "pipewatch.obsrun:main"
 
 [project.urls]
-Homepage = "https://github.com/pipewatch/pipewatch"
-Documentation = "https://github.com/pipewatch/pipewatch#readme"
-Repository = "https://github.com/pipewatch/pipewatch"
-Issues = "https://github.com/pipewatch/pipewatch/issues"
+Homepage = "https://github.com/BurakBulut-sh/pipewatch"
+Documentation = "https://github.com/BurakBulut-sh/pipewatch#readme"
+Repository = "https://github.com/BurakBulut-sh/pipewatch"
+Issues = "https://github.com/BurakBulut-sh/pipewatch/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pipewatch"]

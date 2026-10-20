@@ -2,7 +2,7 @@
 
 **Pipeline observability for legacy Slurm-based bioinformatics workflows**
 
-[![CI](https://github.com/pipewatch/pipewatch/actions/workflows/ci.yml/badge.svg)](https://github.com/pipewatch/pipewatch/actions)
+[![CI](https://github.com/BurakBulut-sh/pipewatch/actions/workflows/ci.yml/badge.svg)](https://github.com/BurakBulut-sh/pipewatch/actions)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -44,16 +44,37 @@ open report/index.html
 
 ## Architecture
 
-Pipewatch consists of two main components:
+```mermaid
+flowchart TD
+    subgraph HPC ["HPC / SLURM Job Execution"]
+        A["HPC Pipeline Script (run.sh / sbatch)"] --> B["pipewatch wrap / obsrun Wrapper"]
+        B --> C["Child Process (e.g. BWA / GATK / SAMtools)"]
+        B --> D["SLURM Environment & /usr/bin/time -v Capture"]
+    end
+
+    subgraph Events ["Event Telemetry Stream"]
+        D --> E["Structured NDJSON Events (*.ndjson)"]
+        E --> F["Captured Metrics: Memory, CPU %, I/O, Exit Code, Host"]
+    end
+
+    subgraph Analytics ["Analytics & Presentation"]
+        E --> G["pipewatch report CLI Engine"]
+        G --> H["Interactive Standalone HTML Report"]
+        G --> I["JSON Aggregations & Run Comparison Matrix"]
+        G --> J["Bottleneck & Failure Diagnostic Insights"]
+    end
+```
+
+Pipewatch consists of two main decoupled components:
 
 ### A. `obsrun` — Lightweight Bash Wrapper
 
-A pure Bash script that:
-- Wraps arbitrary commands
-- Emits structured events (NDJSON)
-- Captures SLURM environment variables
-- Records resource usage via `/usr/bin/time -v`
-- Enables `set -euo pipefail` for robust error detection
+A pure Bash wrapper script that:
+- Wraps arbitrary commands and pipeline steps
+- Emits structured events in NDJSON format
+- Automatically captures SLURM environment variables (`SLURM_JOB_ID`, `SLURM_NODELIST`, `SLURM_CPUS_PER_TASK`)
+- Records process peak memory and CPU utilization via `/usr/bin/time -v`
+- Enforces `set -euo pipefail` for immediate and precise error propagation
 
 ```bash
 # Direct usage
@@ -65,12 +86,12 @@ PIPEWATCH_STEP_NAME=align PIPEWATCH_SAMPLE_ID=S001 obsrun "your_command"
 
 ### B. `pipewatch report` — Analysis & Reporting
 
-A Python tool that:
-- Ingests event files
-- Computes statistics and aggregations
-- Generates HTML dashboards
-- Exports JSON for programmatic access
-- Supports run-to-run comparisons
+A Python CLI and templating engine that:
+- Ingests single or distributed NDJSON event streams
+- Aggregates runtime statistics, step durations, and memory peaks across samples
+- Generates interactive, standalone HTML dashboards (with charts and tables)
+- Exports clean JSON summaries for CI/CD assertions and pipeline regression testing
+- Detects memory bottlenecks and job failures across HPC nodes
 
 ## Installation
 
@@ -83,7 +104,7 @@ pip install pipewatch
 ### From Source
 
 ```bash
-git clone https://github.com/pipewatch/pipewatch.git
+git clone https://github.com/BurakBulut-sh/pipewatch.git
 cd pipewatch
 pip install -e ".[dev]"
 ```
@@ -295,7 +316,7 @@ examples/ci-simulation/
 
 ```bash
 # Clone repository
-git clone https://github.com/pipewatch/pipewatch.git
+git clone https://github.com/BurakBulut-sh/pipewatch.git
 cd pipewatch
 
 # Install in development mode
@@ -315,15 +336,31 @@ bash run_tests.sh
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions and issue reports are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
 
-## Acknowledgments
+## Author & Citation
 
-Pipewatch was inspired by the challenges of observing bioinformatics pipelines in production HPC environments. It aims to bridge the gap between ad-hoc shell scripts and full workflow management systems.
+**Developed by:** Burak Bulut, Ph.D.  
+*Bioinformatics Scientist & Computational Biologist*  
+GitHub: [@BurakBulut-sh](https://github.com/BurakBulut-sh)  
+Email: `burak.buluut@outlook.com`
+
+If you use Pipewatch to monitor your scientific workflows or pipelines, please cite:
+
+```bibtex
+@software{bulut2026pipewatch,
+  author = {Bulut, Burak},
+  title = {Pipewatch: Pipeline observability for legacy Slurm-based bioinformatics workflows},
+  year = {2026},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  url = {https://github.com/BurakBulut-sh/pipewatch}
+}
+```
 
 ---
 
