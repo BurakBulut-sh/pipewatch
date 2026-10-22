@@ -113,7 +113,7 @@ class SlurmAccounting:
     or when the user doesn't have permission to use them.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize and check command availability."""
         self._sacct_available: bool | None = None
         self._sstat_available: bool | None = None
@@ -161,14 +161,15 @@ class SlurmAccounting:
         try:
             # Request specific fields for efficient parsing
             format_str = (
-                "JobID,Elapsed,MaxRSS,AveCPU,TotalCPU,ReqMem,AllocCPUS,"
-                "State,ExitCode,Start,End"
+                "JobID,Elapsed,MaxRSS,AveCPU,TotalCPU,ReqMem,AllocCPUS,State,ExitCode,Start,End"
             )
             result = subprocess.run(
                 [
                     "sacct",
-                    "-j", job_id,
-                    "--format", format_str,
+                    "-j",
+                    job_id,
+                    "--format",
+                    format_str,
                     "--noheader",
                     "-P",  # Parsable output (| delimited)
                 ],
@@ -220,8 +221,10 @@ class SlurmAccounting:
             result = subprocess.run(
                 [
                     "sstat",
-                    "-j", job_id,
-                    "--format", "JobID,MaxRSS,AveCPU",
+                    "-j",
+                    job_id,
+                    "--format",
+                    "JobID,MaxRSS,AveCPU",
                     "--noheader",
                     "-P",
                 ],

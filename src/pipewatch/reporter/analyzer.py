@@ -112,8 +112,12 @@ class PipelineSummary:
                     "max_duration_ms": s.max_duration_ms,
                     "max_duration_human": self._format_duration(s.max_duration_ms),
                     "failures": s.failures,
-                    "avg_max_rss_mb": round(s.avg_max_rss_kb / 1024, 2) if s.avg_max_rss_kb else None,
-                    "max_max_rss_mb": round(s.max_max_rss_kb / 1024, 2) if s.max_max_rss_kb else None,
+                    "avg_max_rss_mb": round(s.avg_max_rss_kb / 1024, 2)
+                    if s.avg_max_rss_kb
+                    else None,
+                    "max_max_rss_mb": round(s.max_max_rss_kb / 1024, 2)
+                    if s.max_max_rss_kb
+                    else None,
                 }
                 for s in self.step_stats
             ],
@@ -198,16 +202,9 @@ class PipelineAnalyzer:
             PipelineSummary with computed statistics.
         """
         if not self.all_events:
-            return PipelineSummary(run_id="empty", total_steps=0, total_samples=0, total_duration_ms=0)
-
-        # Find start and end events
-        start_events = [e for e in self.all_events if e.event_type == EventType.START]
-        end_events = [e for e in self.all_events if e.event_type == EventType.END]
-        step_start_events = [e for e in self.all_events if e.event_type == EventType.STEP_START]
-        step_end_events = [e for e in self.all_events if e.event_type == EventType.STEP_END]
-
-        # Use step events if available, otherwise use start/end
-        has_step_events = bool(step_start_events or step_end_events)
+            return PipelineSummary(
+                run_id="empty", total_steps=0, total_samples=0, total_duration_ms=0
+            )
 
         summary = PipelineSummary(
             run_id=self._derive_run_id(),
@@ -237,7 +234,9 @@ class PipelineAnalyzer:
         # Failure analysis
         summary.total_failures = self._count_failures()
         # Count all end events (both END and STEP_END) for failure rate calculation
-        all_end_events = [e for e in self.all_events if e.event_type in (EventType.END, EventType.STEP_END)]
+        all_end_events = [
+            e for e in self.all_events if e.event_type in (EventType.END, EventType.STEP_END)
+        ]
         summary.failure_rate = (
             summary.total_failures / len(all_end_events) if all_end_events else 0.0
         )
@@ -294,18 +293,12 @@ class PipelineAnalyzer:
 
     def _find_start_time(self) -> str | None:
         """Find earliest start timestamp."""
-        timestamps = [
-            e.timestamp for e in self.all_events
-            if e.event_type == EventType.START
-        ]
+        timestamps = [e.timestamp for e in self.all_events if e.event_type == EventType.START]
         return min(timestamps) if timestamps else None
 
     def _find_end_time(self) -> str | None:
         """Find latest end timestamp."""
-        timestamps = [
-            e.timestamp for e in self.all_events
-            if e.event_type == EventType.END
-        ]
+        timestamps = [e.timestamp for e in self.all_events if e.event_type == EventType.END]
         return max(timestamps) if timestamps else None
 
     def _compute_step_stats(self) -> list[StepStats]:
@@ -317,7 +310,9 @@ class PipelineAnalyzer:
         # Collect end events by step name
         # Only include events that have a step_name (skip generic END events without step_name)
         for e in self.all_events:
-            if e.event_type == EventType.STEP_END or (e.event_type == EventType.END and e.step_name):
+            if e.event_type == EventType.STEP_END or (
+                e.event_type == EventType.END and e.step_name
+            ):
                 name = e.step_name or "unnamed"
                 step_data[name].append(e)
 
@@ -327,17 +322,19 @@ class PipelineAnalyzer:
             rss_values = [e.max_rss_kb for e in events if e.max_rss_kb is not None]
             failures = sum(1 for e in events if e.exit_code != 0)
 
-            stats.append(StepStats(
-                step_name=step_name,
-                count=len(events),
-                total_duration_ms=sum(durations) if durations else 0,
-                avg_duration_ms=sum(durations) / len(durations) if durations else 0,
-                min_duration_ms=min(durations) if durations else 0,
-                max_duration_ms=max(durations) if durations else 0,
-                failures=failures,
-                avg_max_rss_kb=sum(rss_values) / len(rss_values) if rss_values else None,
-                max_max_rss_kb=max(rss_values) if rss_values else None,
-            ))
+            stats.append(
+                StepStats(
+                    step_name=step_name,
+                    count=len(events),
+                    total_duration_ms=sum(durations) if durations else 0,
+                    avg_duration_ms=sum(durations) / len(durations) if durations else 0,
+                    min_duration_ms=min(durations) if durations else 0,
+                    max_duration_ms=max(durations) if durations else 0,
+                    failures=failures,
+                    avg_max_rss_kb=sum(rss_values) / len(rss_values) if rss_values else None,
+                    max_max_rss_kb=max(rss_values) if rss_values else None,
+                )
+            )
 
         return sorted(stats, key=lambda s: s.total_duration_ms, reverse=True)
 
@@ -356,22 +353,25 @@ class PipelineAnalyzer:
             durations = [e.duration_ms for e in events if e.duration_ms is not None]
             failures = sum(1 for e in events if e.exit_code != 0)
 
-            stats.append(SampleStats(
-                sample_id=sample_id,
-                step_count=len(set(e.step_name for e in events if e.step_name)),
-                total_duration_ms=sum(durations) if durations else 0,
-                avg_duration_ms=sum(durations) / len(durations) if durations else 0,
-                min_duration_ms=min(durations) if durations else 0,
-                max_duration_ms=max(durations) if durations else 0,
-                failures=failures,
-            ))
+            stats.append(
+                SampleStats(
+                    sample_id=sample_id,
+                    step_count=len({e.step_name for e in events if e.step_name}),
+                    total_duration_ms=sum(durations) if durations else 0,
+                    avg_duration_ms=sum(durations) / len(durations) if durations else 0,
+                    min_duration_ms=min(durations) if durations else 0,
+                    max_duration_ms=max(durations) if durations else 0,
+                    failures=failures,
+                )
+            )
 
         return sorted(stats, key=lambda s: s.total_duration_ms, reverse=True)
 
     def _count_failures(self) -> int:
         """Count total number of failures."""
         return sum(
-            1 for e in self.all_events
+            1
+            for e in self.all_events
             if e.event_type in (EventType.END, EventType.STEP_END)
             and e.exit_code is not None
             and e.exit_code != 0
@@ -380,25 +380,34 @@ class PipelineAnalyzer:
     def _failures_by_step(self) -> dict[str, int]:
         """Count failures grouped by step."""
         from collections import defaultdict
+
         counts: dict[str, int] = defaultdict(int)
 
         for e in self.all_events:
-            if e.event_type in (EventType.END, EventType.STEP_END):
-                if e.exit_code is not None and e.exit_code != 0:
-                    name = e.step_name or "unnamed"
-                    counts[name] += 1
+            if (
+                e.event_type in (EventType.END, EventType.STEP_END)
+                and e.exit_code is not None
+                and e.exit_code != 0
+            ):
+                name = e.step_name or "unnamed"
+                counts[name] += 1
 
         return dict(sorted(counts.items(), key=lambda x: x[1], reverse=True))
 
     def _failures_by_sample(self) -> dict[str, int]:
         """Count failures grouped by sample."""
         from collections import defaultdict
+
         counts: dict[str, int] = defaultdict(int)
 
         for e in self.all_events:
-            if e.event_type in (EventType.END, EventType.STEP_END):
-                if e.exit_code is not None and e.exit_code != 0 and e.sample_id:
-                    counts[e.sample_id] += 1
+            if (
+                e.event_type in (EventType.END, EventType.STEP_END)
+                and e.exit_code is not None
+                and e.exit_code != 0
+                and e.sample_id
+            ):
+                counts[e.sample_id] += 1
 
         return dict(sorted(counts.items(), key=lambda x: x[1], reverse=True))
 
@@ -413,27 +422,31 @@ class PipelineAnalyzer:
                 if e.step_name == step_name and e.exit_code is not None and e.exit_code != 0:
                     exit_codes[e.exit_code] = exit_codes.get(e.exit_code, 0) + 1
 
-            clusters.append(FailureCluster(
-                category="step",
-                name=step_name,
-                count=count,
-                exit_codes=exit_codes,
-            ))
+            clusters.append(
+                FailureCluster(
+                    category="step",
+                    name=step_name,
+                    count=count,
+                    exit_codes=exit_codes,
+                )
+            )
 
         # Cluster by sample
         for sample_id, count in list(self._failures_by_sample().items())[:5]:
-            exit_codes: dict[int, int] = {}
+            sample_exit_codes: dict[int, int] = {}
             for e in self.all_events:
                 if e.sample_id == sample_id and e.exit_code is not None and e.exit_code != 0:
-                    exit_codes[e.exit_code] = exit_codes.get(e.exit_code, 0) + 1
+                    sample_exit_codes[e.exit_code] = sample_exit_codes.get(e.exit_code, 0) + 1
 
             if count > 0:
-                clusters.append(FailureCluster(
-                    category="sample",
-                    name=sample_id,
-                    count=count,
-                    exit_codes=exit_codes,
-                ))
+                clusters.append(
+                    FailureCluster(
+                        category="sample",
+                        name=sample_id,
+                        count=count,
+                        exit_codes=sample_exit_codes,
+                    )
+                )
 
         return clusters
 
@@ -456,28 +469,31 @@ class PipelineAnalyzer:
         issues = []
 
         # Check for missing resource metrics
-        end_events = [e for e in self.all_events if e.event_type in (EventType.END, EventType.STEP_END)]
+        end_events = [
+            e for e in self.all_events if e.event_type in (EventType.END, EventType.STEP_END)
+        ]
         events_without_memory = sum(1 for e in end_events if e.max_rss_kb is None)
         if events_without_memory:
             pct = events_without_memory / len(end_events) * 100 if end_events else 0
             if pct > 50:
-                issues.append({
-                    "severity": "warning",
-                    "type": "missing_memory_metrics",
-                    "message": f"{pct:.0f}% of events lack memory metrics. Consider using /usr/bin/time -v.",
-                })
+                issues.append(
+                    {
+                        "severity": "warning",
+                        "type": "missing_memory_metrics",
+                        "message": f"{pct:.0f}% of events lack memory metrics. Consider using /usr/bin/time -v.",
+                    }
+                )
 
         # Check for pipelines failing in pipes
-        pipe_failures = [
-            e for e in end_events
-            if e.exit_code != 0 and e.exit_code != 1
-        ]
+        pipe_failures = [e for e in end_events if e.exit_code != 0 and e.exit_code != 1]
         if len(pipe_failures) > len(end_events) * 0.1:
-            issues.append({
-                "severity": "warning",
-                "type": "unusual_exit_codes",
-                "message": f"{len(pipe_failures)} events have unusual exit codes. Check pipefail settings.",
-            })
+            issues.append(
+                {
+                    "severity": "warning",
+                    "type": "unusual_exit_codes",
+                    "message": f"{len(pipe_failures)} events have unusual exit codes. Check pipefail settings.",
+                }
+            )
 
         return issues
 
@@ -505,43 +521,53 @@ class PipelineAnalyzer:
             if this_step and other_step:
                 change_pct = (
                     (this_step.avg_duration_ms - other_step.avg_duration_ms)
-                    / other_step.avg_duration_ms * 100
+                    / other_step.avg_duration_ms
+                    * 100
                     if other_step.avg_duration_ms > 0
                     else 0
                 )
-                comparisons.append({
-                    "step_name": step_name,
-                    "baseline_duration_ms": other_step.avg_duration_ms,
-                    "current_duration_ms": this_step.avg_duration_ms,
-                    "change_pct": round(change_pct, 2),
-                    "regression": change_pct > 10,  # More than 10% slower
-                    "improvement": change_pct < -10,  # More than 10% faster
-                })
+                comparisons.append(
+                    {
+                        "step_name": step_name,
+                        "baseline_duration_ms": other_step.avg_duration_ms,
+                        "current_duration_ms": this_step.avg_duration_ms,
+                        "change_pct": round(change_pct, 2),
+                        "regression": change_pct > 10,  # More than 10% slower
+                        "improvement": change_pct < -10,  # More than 10% faster
+                    }
+                )
             elif this_step:
-                comparisons.append({
-                    "step_name": step_name,
-                    "baseline_duration_ms": None,
-                    "current_duration_ms": this_step.avg_duration_ms,
-                    "change_pct": None,
-                    "regression": False,
-                    "improvement": False,
-                    "note": "New step",
-                })
+                comparisons.append(
+                    {
+                        "step_name": step_name,
+                        "baseline_duration_ms": None,
+                        "current_duration_ms": this_step.avg_duration_ms,
+                        "change_pct": None,
+                        "regression": False,
+                        "improvement": False,
+                        "note": "New step",
+                    }
+                )
             else:
-                comparisons.append({
-                    "step_name": step_name,
-                    "baseline_duration_ms": other_step.avg_duration_ms if other_step else None,
-                    "current_duration_ms": None,
-                    "change_pct": None,
-                    "regression": False,
-                    "improvement": False,
-                    "note": "Removed step",
-                })
+                comparisons.append(
+                    {
+                        "step_name": step_name,
+                        "baseline_duration_ms": other_step.avg_duration_ms if other_step else None,
+                        "current_duration_ms": None,
+                        "change_pct": None,
+                        "regression": False,
+                        "improvement": False,
+                        "note": "Removed step",
+                    }
+                )
 
         return {
             "baseline_run": other_summary.run_id,
             "current_run": this_summary.run_id,
-            "step_comparisons": sorted(comparisons, key=lambda x: x.get("change_pct") or 0, reverse=True),
-            "total_duration_change_ms": this_summary.total_duration_ms - other_summary.total_duration_ms,
+            "step_comparisons": sorted(
+                comparisons, key=lambda x: x.get("change_pct") or 0, reverse=True
+            ),
+            "total_duration_change_ms": this_summary.total_duration_ms
+            - other_summary.total_duration_ms,
             "failure_rate_change": round(this_summary.failure_rate - other_summary.failure_rate, 4),
         }

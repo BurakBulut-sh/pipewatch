@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from enum import Enum, auto
+from datetime import UTC, datetime
+from enum import Enum
 from pathlib import Path
 from typing import Any, TextIO
 
@@ -59,7 +58,7 @@ class RunEvent:
 
     schema_version: str = "1.0.0"
     event_type: EventType = EventType.START
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     hostname: str = field(default_factory=lambda: os.uname().nodename)
     cwd: str = field(default_factory=os.getcwd)
     command: str = ""
@@ -112,7 +111,12 @@ class EventCollector:
             collector.record_end(exit_code=0)
     """
 
-    def __init__(self, output_path: str | Path, stdout_path: str | None = None, stderr_path: str | None = None):
+    def __init__(
+        self,
+        output_path: str | Path,
+        stdout_path: str | None = None,
+        stderr_path: str | None = None,
+    ):
         """Initialize the event collector.
 
         Args:
@@ -218,7 +222,7 @@ class EventCollector:
         Returns:
             The recorded event.
         """
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
         self._current_step_name = step_name
         self._current_sample_id = sample_id
         event = RunEvent(
@@ -230,7 +234,9 @@ class EventCollector:
             git_branch=self._git_info.get("branch"),
             stdout_path=self.stdout_path,
             stderr_path=self.stderr_path,
-            **self.slurm_env,
+            slurm_job_id=self.slurm_env["slurm_job_id"],
+            slurm_array_task_id=self.slurm_env["slurm_array_task_id"],
+            slurm_job_name=self.slurm_env["slurm_job_name"],
             metadata=metadata or {},
         )
         self._write_event(event)
@@ -254,7 +260,7 @@ class EventCollector:
         """
         duration_ms = None
         if self._start_time:
-            duration = datetime.now(timezone.utc) - self._start_time
+            duration = datetime.now(UTC) - self._start_time
             duration_ms = int(duration.total_seconds() * 1000)
 
         event = RunEvent(
@@ -299,7 +305,9 @@ class EventCollector:
             git_branch=self._git_info.get("branch"),
             stdout_path=self.stdout_path,
             stderr_path=self.stderr_path,
-            **self.slurm_env,
+            slurm_job_id=self.slurm_env["slurm_job_id"],
+            slurm_array_task_id=self.slurm_env["slurm_array_task_id"],
+            slurm_job_name=self.slurm_env["slurm_job_name"],
             metadata=metadata or {},
         )
         self._write_event(event)

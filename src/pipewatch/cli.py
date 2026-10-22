@@ -8,6 +8,7 @@ Provides subcommands for:
 
 from __future__ import annotations
 
+import contextlib
 import os
 import re
 import shlex
@@ -21,7 +22,7 @@ from typing import Any
 import click
 
 from pipewatch import __version__
-from pipewatch.collector.events import EventCollector, EventType, load_events
+from pipewatch.collector.events import EventCollector
 from pipewatch.collector.slurm import SlurmAccounting
 from pipewatch.parsers.time_v import TimeVParser
 from pipewatch.reporter.analyzer import PipelineAnalyzer
@@ -38,19 +39,14 @@ def main() -> None:
 @main.command()
 @click.argument("script_path", type=click.Path(exists=True, path_type=Path))
 @click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(path_type=Path),
-    help="Output path for instrumented script (default: script_path.instrumented)"
+    help="Output path for instrumented script (default: script_path.instrumented)",
 )
+@click.option("--step-prefix", default="step", help="Prefix for auto-detected step names")
 @click.option(
-    "--step-prefix",
-    default="step",
-    help="Prefix for auto-detected step names"
-)
-@click.option(
-    "--obsrun-path",
-    default="obsrun",
-    help="Path to obsrun executable (default: obsrun in PATH)"
+    "--obsrun-path", default="obsrun", help="Path to obsrun executable (default: obsrun in PATH)"
 )
 def wrap(
     script_path: Path,
@@ -92,13 +88,13 @@ _pipewatch_obsrun_wrap() {{
     shift
     local step_name="${{PIPEWATCH_STEP_PREFIX}}_${{PIPEWATCH_STEP_COUNT:-0}}"
     export PIPEWATCH_STEP_COUNT=$(( ${{PIPEWATCH_STEP_COUNT:-0}} + 1 ))
-    
+
     # Detect output/error paths from srun args
     local output_path=""
     local error_path=""
     local job_name=""
     local args=("$@")
-    
+
     for i in "${{!args[@]}}"; do
         case "${{args[$i]}}" in
             --output|-o) output_path="${{args[$((i+1))]}}" ;;
@@ -106,7 +102,7 @@ _pipewatch_obsrun_wrap() {{
             --job-name|-J) job_name="${{args[$((i+1))]}}" ;;
         esac
     done
-    
+
     # Run through obsrun
     if [ -n "$PIPEWATCH_OBSRUN_PATH" ] && [ -x "$PIPEWATCH_OBSRUN_PATH" ]; then
         PIPEWATCH_STEP_NAME="$step_name" \\
@@ -124,7 +120,7 @@ pipewatch_srun() {{
     local srun_args=()
     local cmd=""
     local in_cmd=false
-    
+
     for arg in "$@"; do
         if [ "$in_cmd" = true ] || [[ "$arg" == bash* ]] || [[ "$arg" == sh* ]]; then
             in_cmd=true
@@ -133,7 +129,7 @@ pipewatch_srun() {{
             srun_args+=("$arg")
         fi
     done
-    
+
     if [ -n "$cmd" ]; then
         # Wrap the command
         _pipewatch_obsrun_wrap "${{cmd:1}}" "${{srun_args[@]}}"
@@ -158,13 +154,15 @@ fi
 
     # Also try to instrument direct srun bash -c calls
     instrumented_content = "".join(instrumented_lines)
-    
+
     # Pattern to find srun bash -c "..." and wrap it
     # This is a simplified instrumentation that catches common patterns
     instrumented_content = re.sub(
         r'srun\s+(.*?)(bash\s+-c\s+["\'])([^"\']+)(["\'])',
-        lambda m: f'srun {m.group(1)}bash -c \'eval "$PIPEWATCH_OBSRUN_PATH" "{m.group(3)}"\' {m.group(4)}',
-        instrumented_content
+        lambda m: (
+            f'srun {m.group(1)}bash -c \'eval "$PIPEWATCH_OBSRUN_PATH" "{m.group(3)}"\' {m.group(4)}'
+        ),
+        instrumented_content,
     )
 
     output_path.write_text(instrumented_content)
@@ -191,36 +189,25 @@ def _has_gnu_time(time_cmd: str = "/usr/bin/time") -> bool:
 @main.command()
 @click.argument("command", nargs=-1, required=True)
 @click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(path_type=Path),
     default="pipewatch-events.ndjson",
-    help="Output path for event file"
+    help="Output path for event file",
 )
+@click.option("--step-name", help="Name of the step being executed")
 @click.option(
-    "--step-name",
-    help="Name of the step being executed"
+    "--sample-id", help="Sample identifier (auto-detected from SLURM_ARRAY_TASK_ID if not set)"
 )
-@click.option(
-    "--sample-id",
-    help="Sample identifier (auto-detected from SLURM_ARRAY_TASK_ID if not set)"
-)
-@click.option(
-    "--stdout-path",
-    help="Path to stdout log file"
-)
-@click.option(
-    "--stderr-path",
-    help="Path to stderr log file"
-)
+@click.option("--stdout-path", help="Path to stdout log file")
+@click.option("--stderr-path", help="Path to stderr log file")
 @click.option(
     "--capture-resources/--no-capture-resources",
     default=True,
-    help="Capture resource usage with /usr/bin/time -v"
+    help="Capture resource usage with /usr/bin/time -v",
 )
 @click.option(
-    "--use-time",
-    default="/usr/bin/time",
-    help="Path to time command (default: /usr/bin/time)"
+    "--use-time", default="/usr/bin/time", help="Path to time command (default: /usr/bin/time)"
 )
 def run(
     command: tuple[str, ...],
@@ -241,11 +228,11 @@ def run(
         pipewatch run --step-name align "bwa mem ref.fa reads.fq | samtools sort -o out.bam"
     """
     cmd_str = " ".join(command)
-    
+
     # Auto-detect sample ID from SLURM_ARRAY_TASK_ID
     if sample_id is None:
         sample_id = os.environ.get("SLURM_ARRAY_TASK_ID")
-    
+
     # Auto-detect step name from environment
     if step_name is None:
         step_name = os.environ.get("PIPEWATCH_STEP_NAME")
@@ -266,13 +253,14 @@ def run(
 
         # Prepare command with time -v if requested and available
         has_gnu = _has_gnu_time(use_time)
+        time_output_name: str | None = None
         if capture_resources and shutil.which(use_time) and has_gnu:
             # Create temp files for time output
-            time_output = tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".time")
-            time_output.close()
-            
+            with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".time") as tf:
+                time_output_name = tf.name
+
             # Wrap command with time -v
-            wrapped_cmd = f'{use_time} -v -o "{time_output.name}" bash -c {shlex.quote(f"set -euo pipefail; {cmd_str}")}'
+            wrapped_cmd = f'{use_time} -v -o "{time_output_name}" bash -c {shlex.quote(f"set -euo pipefail; {cmd_str}")}'
         else:
             if capture_resources and not has_gnu:
                 click.echo(
@@ -280,8 +268,7 @@ def run(
                     "Install GNU time for resource metrics.",
                     err=True,
                 )
-            wrapped_cmd = f'bash -c {shlex.quote(f"set -euo pipefail; {cmd_str}")}'
-            time_output = None
+            wrapped_cmd = f"bash -c {shlex.quote(f'set -euo pipefail; {cmd_str}')}"
 
         # Execute command
         try:
@@ -297,17 +284,15 @@ def run(
 
         # Parse resource usage if captured
         resource_usage: dict[str, Any] | None = None
-        if time_output:
+        if time_output_name:
             try:
-                time_data = Path(time_output.name).read_text()
+                time_data = Path(time_output_name).read_text()
                 resource_usage = TimeVParser.parse(time_data).to_resource_usage()
             except Exception:
                 pass
             finally:
-                try:
-                    os.unlink(time_output.name)
-                except OSError:
-                    pass
+                with contextlib.suppress(OSError):
+                    os.unlink(time_output_name)
 
         # Try to get SLURM accounting data if available
         slurm_job_id = os.environ.get("SLURM_JOB_ID")
@@ -333,26 +318,24 @@ def run(
 @main.command()
 @click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True, path_type=Path))
 @click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(path_type=Path),
     default="pipewatch-report",
-    help="Output directory for report files"
+    help="Output directory for report files",
 )
 @click.option(
-    "--format",
-    type=click.Choice(["html", "json", "both"]),
-    default="both",
-    help="Output format"
+    "--format", type=click.Choice(["html", "json", "both"]), default="both", help="Output format"
 )
 @click.option(
     "--compare-with",
     type=click.Path(exists=True, path_type=Path),
-    help="Path to baseline event file for comparison"
+    help="Path to baseline event file for comparison",
 )
 @click.option(
     "--job-named/--no-job-named",
     default=False,
-    help="Name reports using job ID (e.g., slurm-12345.html instead of index.html)"
+    help="Name reports using job ID (e.g., slurm-12345.html instead of index.html)",
 )
 def report(
     paths: tuple[Path, ...],
@@ -428,15 +411,9 @@ def report(
 # Standalone obsreport command for backward compatibility
 @click.command()
 @click.argument("event_file", type=click.Path(exists=True, path_type=Path))
+@click.option("--output", "-o", type=click.Path(path_type=Path), help="Output HTML file path")
 @click.option(
-    "--output", "-o",
-    type=click.Path(path_type=Path),
-    help="Output HTML file path"
-)
-@click.option(
-    "--json-output",
-    type=click.Path(path_type=Path),
-    help="Also output JSON to this path"
+    "--json-output", type=click.Path(path_type=Path), help="Also output JSON to this path"
 )
 def obsreport_main(
     event_file: Path,
@@ -448,7 +425,6 @@ def obsreport_main(
     This is a simplified interface for quick report generation.
     For full functionality, use 'pipewatch report'.
     """
-    import shlex
 
     analyzer = PipelineAnalyzer([event_file])
     summary = analyzer.analyze()

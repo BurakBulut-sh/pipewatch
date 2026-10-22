@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from pipewatch.reporter.analyzer import PipelineAnalyzer, PipelineSummary
+from pipewatch.reporter.analyzer import PipelineSummary
 
-
-HTML_TEMPLATE = '''
+HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -531,7 +530,7 @@ HTML_TEMPLATE = '''
     </div>
 </body>
 </html>
-'''
+"""
 
 
 class HTMLReportGenerator:
@@ -558,7 +557,6 @@ class HTMLReportGenerator:
             output_path: Path to write HTML file.
             comparison: Optional comparison data from compare_runs().
         """
-        from datetime import datetime
 
         try:
             from jinja2 import Template
@@ -572,7 +570,7 @@ class HTMLReportGenerator:
         html = template.render(
             summary=summary,
             total_duration=summary._format_duration(summary.total_duration_ms),
-            generation_time=datetime.now(timezone.utc).isoformat(),
+            generation_time=datetime.now(UTC).isoformat(),
             comparison=comparison,
             version="0.1.0",
         )
@@ -581,7 +579,7 @@ class HTMLReportGenerator:
 
     def _generate_simple_html(self, summary: PipelineSummary, output_path: Path) -> None:
         """Generate simple HTML without Jinja2 dependency."""
-        html = f'''<!DOCTYPE html>
+        html = f"""<!DOCTYPE html>
 <html>
 <head>
     <title>Pipewatch Report - {summary.run_id}</title>
@@ -610,7 +608,7 @@ class HTMLReportGenerator:
         <strong>Failures:</strong> {summary.total_failures}
     </div>
 </body>
-</html>'''
+</html>"""
 
         output_path.write_text(html, encoding="utf-8")
 

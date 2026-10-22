@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from pipewatch.parsers.time_v import TimeVData, TimeVParser
 
 
@@ -50,7 +48,7 @@ class TestTimeVParser:
     def test_parse_basic(self) -> None:
         """Test parsing basic time -v output."""
         data = TimeVParser.parse(self.SAMPLE_OUTPUT)
-        
+
         assert data.user_time_s == 0.00
         assert data.system_time_s == 0.00
         assert data.elapsed_time_s == 1.0  # 0:01.00
@@ -60,7 +58,7 @@ class TestTimeVParser:
     def test_parse_long_running(self) -> None:
         """Test parsing output with longer elapsed time."""
         data = TimeVParser.parse(self.LONG_RUNNING_OUTPUT)
-        
+
         assert data.user_time_s == 0.01
         assert data.system_time_s == 0.02
         # 2:03.00 = 123 seconds
@@ -70,7 +68,7 @@ class TestTimeVParser:
     def test_parse_empty(self) -> None:
         """Test parsing empty output."""
         data = TimeVParser.parse("")
-        
+
         assert data.user_time_s is None
         assert data.max_rss_kb is None
         assert data.exit_status is None
@@ -82,7 +80,7 @@ class TestTimeVParser:
 	Maximum resident set size (kbytes): 10240
 """
         data = TimeVParser.parse(partial)
-        
+
         assert data.user_time_s == 5.5
         assert data.max_rss_kb == 10240
         assert data.system_time_s is None
@@ -94,12 +92,12 @@ class TestTimeVParser:
         output1 = "Elapsed (wall clock) time (h:mm:ss or m:ss): 1:30:45"
         data1 = TimeVParser.parse(output1)
         assert data1.elapsed_time_s == 5445.0  # 1*3600 + 30*60 + 45
-        
+
         # M:SS format
         output2 = "Elapsed (wall clock) time (h:mm:ss or m:ss): 5:30.5"
         data2 = TimeVParser.parse(output2)
         assert data2.elapsed_time_s == 330.5  # 5*60 + 30.5
-        
+
         # Just seconds
         output3 = "Elapsed (wall clock) time (h:mm:ss or m:ss): 45.123"
         data3 = TimeVParser.parse(output3)
@@ -109,7 +107,7 @@ class TestTimeVParser:
         """Test conversion to resource usage dict."""
         data = TimeVParser.parse(self.SAMPLE_OUTPUT)
         usage = data.to_resource_usage()
-        
+
         assert usage["user_time_s"] == 0.00
         assert usage["sys_time_s"] == 0.00
         assert usage["wall_time_s"] == 1.0
@@ -126,7 +124,7 @@ class TestTimeVData:
             system_time_s=0.5,
             max_rss_kb=4096,
         )
-        
+
         assert data.user_time_s == 1.5
         assert data.system_time_s == 0.5
         assert data.max_rss_kb == 4096
@@ -134,6 +132,6 @@ class TestTimeVData:
     def test_optional_fields(self) -> None:
         """Test that fields are optional."""
         data = TimeVData()
-        
+
         assert data.user_time_s is None
         assert data.max_rss_kb is None

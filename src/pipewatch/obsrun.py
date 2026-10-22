@@ -18,14 +18,14 @@ def get_obsrun_script() -> str:
     # First check if OBSRUN_PATH is set
     if obsrun_path := os.environ.get("OBSRUN_PATH"):
         return obsrun_path
-    
+
     # Look in the same directory as this file
     module_dir = Path(__file__).parent
     script_path = module_dir / "obsrun.sh"
-    
+
     if script_path.exists():
         return str(script_path)
-    
+
     # Check in PATH
     for path_dir in os.environ.get("PATH", "").split(os.pathsep):
         script = Path(path_dir) / "obsrun"
@@ -34,7 +34,7 @@ def get_obsrun_script() -> str:
         script = Path(path_dir) / "obsrun.sh"
         if script.exists():
             return str(script)
-    
+
     raise RuntimeError("obsrun script not found. Set OBSRUN_PATH environment variable.")
 
 
@@ -50,18 +50,18 @@ def main() -> int:
         print("  PIPEWATCH_STDOUT_PATH    Path to stdout log file", file=sys.stderr)
         print("  PIPEWATCH_STDERR_PATH    Path to stderr log file", file=sys.stderr)
         return 1
-    
+
     obsrun_script = get_obsrun_script()
-    
+
     # The command to execute is everything after the script name
     command = " ".join(sys.argv[1:])
-    
+
     # Run obsrun.sh with the command
     result = subprocess.run(
         ["bash", obsrun_script, command],
         capture_output=False,
     )
-    
+
     return result.returncode
 
 

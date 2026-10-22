@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 
 @dataclass(frozen=True)
@@ -69,7 +69,7 @@ class TimeVParser:
     """
 
     # Mapping of time-v output patterns to field names and converters
-    PATTERNS = {
+    PATTERNS: ClassVar[dict[str, Any]] = {
         # Time metrics
         r"User time \(seconds\): ([\d.]+)": ("user_time_s", float),
         r"System time \(seconds\): ([\d.]+)": ("system_time_s", float),
@@ -123,7 +123,7 @@ class TimeVParser:
                 try:
                     if converter == "elapsed":
                         data[field_name] = cls._parse_elapsed_time(value_str)
-                    else:
+                    elif callable(converter):
                         data[field_name] = converter(value_str)
                 except (ValueError, TypeError):
                     # Skip values that can't be converted

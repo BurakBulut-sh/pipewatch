@@ -3,4 +3,4 @@
 from .analyzer import PipelineAnalyzer, PipelineSummary
 from .html_report import HTMLReportGenerator
 
-__all__ = ["PipelineAnalyzer", "PipelineSummary", "HTMLReportGenerator"]
+__all__ = ["HTMLReportGenerator", "PipelineAnalyzer", "PipelineSummary"]

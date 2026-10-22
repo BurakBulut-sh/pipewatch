@@ -19,7 +19,7 @@ Bioinformatics pipelines often run for hours or days across hundreds of samples.
 
 Traditional approaches require either:
 1. **Painstaking manual log parsing** across thousands of files
-2. **Full workflow manager migration** (Nextflow, Snakemake, WDL) — expensive and disruptive
+2. **Full workflow manager migration** (Nextflow, Snakemake, WDL): expensive and disruptive
 
 **Pipewatch provides a middle path**: add observability to your existing Bash scripts in minutes.
 
@@ -67,7 +67,7 @@ flowchart TD
 
 Pipewatch consists of two main decoupled components:
 
-### A. `obsrun` — Lightweight Bash Wrapper
+### A. `obsrun` - Lightweight Bash Wrapper
 
 A pure Bash wrapper script that:
 - Wraps arbitrary commands and pipeline steps
@@ -84,7 +84,7 @@ obsrun "bwa mem ref.fa reads.fq | samtools sort -o out.bam"
 PIPEWATCH_STEP_NAME=align PIPEWATCH_SAMPLE_ID=S001 obsrun "your_command"
 ```
 
-### B. `pipewatch report` — Analysis & Reporting
+### B. `pipewatch report` - Analysis & Reporting
 
 A Python CLI and templating engine that:
 - Ingests single or distributed NDJSON event streams
@@ -118,7 +118,7 @@ docker run -v $(pwd)/reports:/app/reports pipewatch
 
 ## CLI Reference
 
-### `pipewatch wrap` — Instrument a Script
+### `pipewatch wrap`: Instrument a Script
 
 Generate an instrumented copy of your `run.sh` by rewriting `srun` calls:
 
@@ -131,7 +131,7 @@ Options:
 - `--step-prefix`: Prefix for auto-detected step names (default: `step`)
 - `--obsrun-path`: Path to obsrun executable
 
-### `pipewatch run` — Execute Under Observation
+### `pipewatch run`: Execute Under Observation
 
 Run a command with full observability:
 
@@ -146,7 +146,7 @@ Options:
 - `--sample-id`: Sample identifier
 - `--capture-resources/--no-capture-resources`: Enable resource capture (default: enabled)
 
-### `pipewatch report` — Generate Reports
+### `pipewatch report`: Generate Reports
 
 Ingest event files and produce reports:
 
@@ -340,7 +340,7 @@ Contributions and issue reports are welcome! Please see [CONTRIBUTING.md](CONTRI
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT License: see [LICENSE](LICENSE) for details.
 
 ## Author & Citation
 
